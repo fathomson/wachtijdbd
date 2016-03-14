@@ -11,26 +11,21 @@ var tooltip = d3.select(heatmapId)
         .style("visibility", "hidden");
 
 //==================================================
-// http://bl.ocks.org/mbostock/3680958
 function zoom() {
     svg.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
 }
 
 // define the zoomListener which calls the zoom function on the "zoom" event constrained within the scaleExtents
-var zoomListener = d3.behavior.zoom().scaleExtent([0.1, 3]).on("zoom", zoom);
+var zoomListener = d3.behavior.zoom().scaleExtent([1, 1]).on("zoom", zoom);
 
-//==================================================
-var viewerWidth = $(document).width();
-var viewerHeight = $(document).height();
-var viewerPosTop = 100;
+var viewerWidth = 1000;
+var viewerHeight = 500;
+var viewerPosTop = 50;
 var viewerPosLeft = 100;
-
 var legendElementWidth = cellSize * 2;
 
 // http://bl.ocks.org/mbostock/3680999
-var svg;
-
-svg = d3.select(heatmapId).append("svg")
+var svg = d3.select(heatmapId).append("svg")
         .attr("width", viewerWidth)
         .attr("height", viewerHeight)
         .call(zoomListener)
@@ -49,9 +44,8 @@ svg.append('defs')
         .attr('stroke-width', 1);
 
 
-//#########################################################
-function heatmap_display() {
-    //==================================================
+function setData() {
+    svg.selectAll("*").remove();
     d3.json('http://localhost/bt/d3/data.php', function (error, data) {
         var visibleRows = getRowArray();
 
@@ -111,12 +105,6 @@ function heatmap_display() {
                 })
                 .on('mouseout', function (d, i) {
                     d3.select('#rowLabel_' + i).classed("hover", false);
-                })
-                .on("click", function (d, i) {
-                    rowSortOrder = !rowSortOrder;
-                    sortByValues("r", i, rowSortOrder);
-                    d3.select("#order").property("selectedIndex", 0);
-                    //$("#order").jqxComboBox({selectedIndex: 0});
                 });
 
         var colLabels = svg.append("g")
@@ -144,11 +132,6 @@ function heatmap_display() {
                 })
                 .on('mouseout', function (d, i) {
                     d3.select('#colLabel_' + i).classed("hover", false);
-                })
-                .on("click", function (d, i) {
-                    colSortOrder = !colSortOrder;
-                    sortByValues("c", i, colSortOrder);
-                    d3.select("#order").property("selectedIndex", 0);
                 });
 
         var row = svg.selectAll(".row")
@@ -159,6 +142,7 @@ function heatmap_display() {
                 })
                 .attr("class", "row");
 
+
         var j = 0;
         var heatMap = row.selectAll(".cell")
                 .data(function (d) {
@@ -166,6 +150,7 @@ function heatmap_display() {
                     return d;
                 })
                 .enter().append("svg:rect")
+                .style('opacity', 0)
                 .attr("x", function (d, i) {
                     return i * cellSize;
                 })
@@ -195,7 +180,7 @@ function heatmap_display() {
                     d3.select('#colLabel_' + i).classed("hover", true);
                     d3.select('#rowLabel_' + j).classed("hover", true);
                     if (d != null) {
-                        tooltip.html('<div class="heatmap_tooltip">' + d.toFixed(3) + '</div>');
+                        tooltip.html('<div class="heatmap_tooltip">' + convertSecondToMinuts(d) + '</div>');
                         tooltip.style("visibility", "visible");
                     } else
                         tooltip.style("visibility", "hidden");
@@ -212,10 +197,15 @@ function heatmap_display() {
                     //console.log(d3.select(this));
                 });
 
+        heatMap.transition()
+                .delay(function (d, i) {
+                    return i * 10;
+                })
+                .duration(1250)
+                .style('opacity', 1);
+
 
     });
-
-    //==================================================
 }
 
 //return a string array with rows to show
@@ -246,32 +236,39 @@ function getRowArray() {
                 "BT_G_BELONS_1", "BT_G_CAMP_1", "BT_G_EBV_1", "BT_G_ENGELS_1", "BT_G_ERFETM_1",
                 "BT_G_GELDZAKEN_1", "BT_G_INVOR_1", "BT_G_OHVAUTO_1", "BT_G_OHVOND_1", "BT_G_OHVPART_1",
                 "BT_G_OHVTOE_1", "BT_G_SCHEIDEN_1", "BT_HI_IB_1", "BT_HI_OVERIG_1", "BT_S_MELDINGEN");
-    console.log(rowArray);
     return rowArray;
 
 }
 
-function updateHeatmap() {
-    heatmap_display();
+$('.btn-wachtstroom').click(function () {
+    console.log(this.id);
+    switch (this.id) {
+        case "btn-auto":
+            visibleItems[0] = this.getAttribute("aria-pressed") === "true";
+            break;
+        case "btn-toeslagen":
+            visibleItems[1] = this.getAttribute("aria-pressed") === "true";
+            break;
+        case "btn-ondernemers":
+            visibleItems[2] = this.getAttribute("aria-pressed") === "true";
+            break;
+        case "btn-particulieren":
+            visibleItems[3] = this.getAttribute("aria-pressed") === "true";
+            break;
+        case "btn-overig":
+            visibleItems[4] = this.getAttribute("aria-pressed") === "true";
+            break;
+    }
+    setData();
+
+});
+
+function convertSecondToMinuts(seconds) {
+    var minutes = Math.floor(seconds / 60);
+    var sec = seconds % 60;
+    return minutes + 'm ' + sec + 's';
 }
 
-$('#btn-auto').on('click', function (e) {
-    visibleItems[0] = e.target.getAttribute("aria-pressed") === "true";
-})
-$('#btn-toeslagen').on('click', function (e) {
-    visibleItems[1] = e.target.getAttribute("aria-pressed") === "true";
-})
-$('#btn-ondernemers').on('click', function (e) {
-    visibleItems[2] = e.target.getAttribute("aria-pressed") === "true";
-})
-$('#btn-particulieren').on('click', function (e) {
-    visibleItems[3] = e.target.getAttribute("aria-pressed") === "true";
-    updateHeatmap();
-})
-$('#btn-overig').on('click', function (e) {
-    visibleItems[4] = e.target.getAttribute("aria-pressed") === "true";
-    updateHeatmap();
-})
 $(document).ready(function () {
-    heatmap_display();
+    setData();
 });
