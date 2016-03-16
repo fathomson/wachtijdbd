@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" media="all" href="style.css"/>
+        <script src="//d3js.org/d3.v3.min.js" charset="utf-8"/></script>
+    <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+    <script src="http://d3js.org/colorbrewer.v1.min.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" >
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" ></script>
+</head>
+<body>
+    <button id="btn-auto" type="button" class="btn btn-wachtstroom" data-toggle="button" aria-pressed="false" autocomplete="off">
+        Auto
+    </button>
+    <button id="btn-toeslagen" type="button" class="btn btn-wachtstroom" data-toggle="button" aria-pressed="false" autocomplete="off">
+        Toeslagen
+    </button>
+    <button id="btn-ondernemers" type="button" class="btn btn-wachtstroom" data-toggle="button" aria-pressed="false" autocomplete="off">
+        Ondernemers
+    </button>
+    <button id="btn-particulieren" type="button" class="btn btn-wachtstroom" data-toggle="button" aria-pressed="false" autocomplete="off">
+        Particulieren
+    </button>
+    <button id="btn-overig" type="button" class="btn btn-wachtstroom" data-toggle="button" aria-pressed="false" autocomplete="off">
+        Overig
+    </button>
+
+    <div id="heatmap">
+    </div>
+    <script src="script.js" charset="utf-8"></script>
+</body>
+</html>

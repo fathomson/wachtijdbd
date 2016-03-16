@@ -1,7 +1,7 @@
 var classesNumber = 10,
         cellSize = 24;
 var colors = ['#ffffcc', '#ffeda0', '#fed976', '#feb24c', '#fd8d3c', '#fc4e2a', '#e31a1c', '#bd0026', '#800026'];
-var visibleItems = [true, true, true, true, true];
+var visibleItems = [true, false, false, false, false];
 var heatmapId = '#heatmap';
 
 //==================================================
@@ -9,15 +9,16 @@ var tooltip = d3.select(heatmapId)
         .append("div")
         .style("position", "absolute")
         .style("visibility", "hidden");
+
 var legendElementWidth = cellSize * 2;
 
 
-var margin = {top: 20, right: 60, bottom: 30, left: 20},
+var margin = {top: 20, right: 60, bottom: 30, left: 50},
 width = 960 - margin.left - margin.right,
         height = 500 - margin.top - margin.bottom;
 
 
-var x = d3.time.scale()
+var x = d3.scale.linear()
         .range([0, width]);
 
 var y = d3.scale.linear()
@@ -26,17 +27,18 @@ var y = d3.scale.linear()
 var xAxis = d3.svg.axis()
         .scale(x)
         .orient("bottom")
-        .tickSize(-height, 0)
-        .tickPadding(6);
+        .tickSize(-height, 0);
 
 var yAxis = d3.svg.axis()
         .scale(y)
         .orient("right")
-        .tickSize(-width)
-        .tickPadding(6);
+        .ticks(5)
+        .tickSize(-width);
 
 var zoom = d3.behavior.zoom()
-        .on("zoom", draw);
+        .on("zoom", refresh);
+
+var timer = true;
 
 
 // http://bl.ocks.org/mbostock/3680999
@@ -45,7 +47,16 @@ var svg = d3.select(heatmapId).append("svg")
         .attr("height", height + margin.top + margin.bottom)
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-        .call(zoom);
+        .call(zoom)
+        .on("mousedown", function () {
+            timer = false;
+        })
+        .on("mouseup", function () {
+            timer = true;
+        });
+svg.append("rect")
+        .attr("width", width)
+        .attr("height", height);
 
 
 svg.append('defs')
@@ -55,10 +66,7 @@ svg.append('defs')
         .attr('width', 4)
         .attr('height', 4);
 
-function draw() {
-    svg.select("g.x.axis").call(xAxis);
-    svg.select("g.y.axis").call(yAxis);
-}
+
 
 function setData() {
     svg.selectAll("*").remove();
@@ -94,10 +102,15 @@ function setData() {
                     })])
                 .range(colors);
 
+        x.domain([0, arr.length]);
+        y.domain([0, d3.max(data, function (d) {
+                return  d3.max(d);
+            })]);
+
 
 
         var rowLabels = svg.append("g")
-                .attr("class", "rowLabels")
+                .attr("class", "y axis")
                 .selectAll(".rowLabel")
                 .data(yLabels)
                 .enter().append("text")
@@ -112,19 +125,11 @@ function setData() {
                 .attr("transform", function (d, i) {
                     return "translate(-3," + cellSize / 1.5 + ")";
                 })
-                .attr("class", "rowLabel mono")
-                .attr("id", function (d, i) {
-                    return "rowLabel_" + i;
-                })
-                .on('mouseover', function (d, i) {
-                    d3.select('#rowLabel_' + i).classed("hover", true);
-                })
-                .on('mouseout', function (d, i) {
-                    d3.select('#rowLabel_' + i).classed("hover", false);
-                });
+                .attr("class", "rowLabel mono");
 
         var colLabels = svg.append("g")
-                .attr("class", "colLabels")
+                .attr("class", "x axis")
+                .call(xAxis)
                 .selectAll(".colLabel")
                 .data(data.xLabels)
                 .enter().append("text")
@@ -139,16 +144,7 @@ function setData() {
                 .attr("transform", function (d, i) {
                     return "translate(" + cellSize / 2 + ", -3) rotate(-90) rotate(45, 0, " + (i * cellSize) + ")";
                 })
-                .attr("class", "colLabel mono")
-                .attr("id", function (d, i) {
-                    return "colLabel_" + i;
-                })
-                .on('mouseover', function (d, i) {
-                    d3.select('#colLabel_' + i).classed("hover", true);
-                })
-                .on('mouseout', function (d, i) {
-                    d3.select('#colLabel_' + i).classed("hover", false);
-                });
+                .attr("class", "colLabel mono");
 
         var row = svg.selectAll(".row")
                 .data(dataPoints)
@@ -212,7 +208,6 @@ function setData() {
                 .on('click', function () {
                     //console.log(d3.select(this));
                 });
-
         heatMap.transition()
                 .delay(function (d, i) {
                     return i * 10;
@@ -224,12 +219,17 @@ function setData() {
     });
 }
 
+function refresh() {
+    svg.select(".x.axis").call(xAxis);
+}
+
 //return a string array with rows to show
 function getRowArray() {
     var rowArray = [];
     //Auto 
+    //        rowArray.push("BT_A_AUTO_1", "BT_A_BPM_1", "BT_A_HSB_1", "BT_A_VRACHT_1");
     if (visibleItems[0])
-        rowArray.push("BT_A_AUTO_1", "BT_A_BPM_1", "BT_A_HSB_1", "BT_A_VRACHT_1");
+        rowArray.push("BT_A_AUTO_1");
 
     //Toeslagen
     if (visibleItems[1])
