@@ -10,7 +10,7 @@ var line_points = [];
 
 var margin = {top: 10, right: 20, bottom: 30, left: 100},
     width = 1100 - margin.left - margin.right,
-    height = 150 - margin.top - margin.bottom;
+    height = 900 - margin.top - margin.bottom;
 
 // Map colors to limits
 var color = d3.scale.ordinal()
@@ -101,7 +101,7 @@ d3.csv("data.csv", function(error, data) {
     // Scale the range of the entire chart
     x.domain(d3.extent(data, function(d) { return d.distance; }));
     y.domain([0, d3.max(data, function(d) { return d.elevation; })]);
-    svg.call(zoomListener.x(x).y(y));
+    svg.call(zoomListener.x(x));
 
     // Split the data based on "group"
     var dataGroup = d3.nest()
